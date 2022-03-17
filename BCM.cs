@@ -6,15 +6,10 @@ namespace BCM{
         public static Matrix<double> Solver(Matrix<double> A){
             int n = A.RowCount;
 
-            int rank = 5; // (int) Math.Sqrt(n); // (int) Math.Min(100D, Math.Sqrt(2*n));
+            int rank = (int) Math.Sqrt(n); // (int) Math.Min(100D, Math.Sqrt(2*n));
 
             // Generating sigma matrix and normalising so that all rows equal 1.
-            Matrix<double> sigma = CreateMatrix.Random<double>(n, rank);
-            Vector<double> sigNorm = sigma.RowNorms(2D);
-
-            for (int i = 0; i < n; i++){
-                sigma.SetRow(i, sigma.Row(i)/sigNorm[i]);
-            }
+            Matrix<double> sigma = CreateMatrix.Random<double>(n, rank).NormalizeRows(2D);
 
             // Creating gradient array and fililng with information
             Matrix<double> noDiag = A - CreateMatrix.SparseOfDiagonalVector<double>(A.Diagonal());
@@ -40,7 +35,9 @@ namespace BCM{
                 }       
 
                 // Returning if selection is same as old or small
-                if (ik == old_sel || max_val < 0.001) {return sigma;}
+                if (ik == old_sel || max_val < 0.001) {
+                    return sigma;
+                    }
                 old_sel = ik;
 
                 // Updating sigma and recalculating gradient array.
