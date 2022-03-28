@@ -37,10 +37,10 @@ namespace BCM{
                 // Returning if selection is same as old or small
                 if (ik == old_sel || max_val < 0.001) {
                     return sigma;
-                    }
+                }
                 old_sel = ik;
 
-                // Updating sigma and recalculating gradient array.
+                // Updating sigma and recalculating gradient array
                 sigma.SetRow(ik, grad.Row(ik)/mag_grad[ik]);
                 grad = (A - CreateMatrix.SparseOfDiagonalVector<double>(A.Diagonal())) * sigma;
 

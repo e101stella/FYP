@@ -23,17 +23,19 @@ namespace BCM{
             Matrix<double> grad = (A - CreateMatrix.SparseOfDiagonalVector<double>(A.Diagonal())).Multiply(sigma);
 
             Vector<double> mag_grad = grad.RowNorms(2D);
+            
+            Control.UseSingleThread();
 
             // Declaring loop variables
             double[] grad_diff = new double[n];
             double max_val;
             int ik, old_sel=-1;
+            Vector<double> old_row;
 
             int max_iter = (int) Math.Pow(n, 2), iterations = 0;
             
             while (true){
                 // Calculating all gradients concurrently
-                Control.UseSingleThread();
                 Parallel.For(0, n, i => {
                     grad_diff[i] = mag_grad[i] - sigma.Row(i).DotProduct(grad.Row(i));
                 });
@@ -53,10 +55,15 @@ namespace BCM{
                     return sigma;
                     }
                 old_sel = ik;
-                
-                Control.UseMultiThreading();
+
                 // Updating sigma and recalculating gradient array.
+                old_row = sigma.Row(ik);
                 sigma.SetRow(ik, grad.Row(ik)/mag_grad[ik]);
+                Parallel.For(0, n, i => {
+                    if (i != ik){
+                        grad.SetRow(i, grad.Row(i) + A[i,ik] * sigma.Row(ik) - A[i, ik] * old_row);
+                    }
+                });
                 grad = (A - CreateMatrix.SparseOfDiagonalVector<double>(A.Diagonal())) * sigma;
 
                 mag_grad = grad.RowNorms(2D);
