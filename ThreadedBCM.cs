@@ -67,7 +67,7 @@ namespace BCM{
 
                 mag_grad = grad.RowNorms(2D);
                 iterations++;
-                output = output.Append(Program.Solution(A, sigma));
+                output = output.Append(Program.Solution(-A, sigma));
             } 
         }
     }
