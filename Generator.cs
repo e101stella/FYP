@@ -4,7 +4,7 @@ using MathNet.Numerics.LinearAlgebra.Double;
 
 namespace Generator{
     class Generator{
-        public static void GenerateNewMatrix(int number, int order, int degree, double mean, double std_dev) {
+        public static void GenerateSymmetricMatrix(int number, int order, int degree, double mean, double std_dev) {
             /*
             Generates a number of sparse matrices of size order x order, with a density of degree/order. 
             Populates values according to a gaussian distribution with associated variables mean & std_dev

@@ -27,7 +27,6 @@ class SparseIO {
 
     public static Matrix<double> Reader(string filename){
         // Checking the file exists and openning it.
-        if (!File.Exists(filename)){throw new FileNotFoundException();}
         FileStream stream = new FileStream(filename, FileMode.Open);
 
         using (StreamReader reader = new StreamReader(stream)){

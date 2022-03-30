@@ -1,14 +1,39 @@
 using MathNet.Numerics.LinearAlgebra;
 
-class Program{
-    public static void Main(string[] args){
-        // Generator.Generator.GenerateNewMatrix(1, 10000, 5, 0, 1); 
+namespace BCM
+{
+    class Program
+    {
+        public static void Main(string[] args)
+        {
+            // Generator.Generator.GenerateNewMatrix(1, 10000, 5, 0, 1); 
+            string filename = "1n1000_d5_m0_std1.csv";
+            string path = "D:/University Work/OneDrive - Monash University/5th Year/ENG4702/BCM/TestCases/";
+            Matrix<double> input = SparseIO.Reader($"{path}{filename}");
 
-        Matrix<double> input = SparseIO.Reader("TestCases/1n1000_d5_m0_std1.csv");
-        Matrix<double> output = ThreadedBCM.BCM.Solver(-input);
+            IEnumerable<double> output = ThreadedBCM.Solver(-input);
 
-        double opt_sol = input.PointwiseMultiply(output * output.Transpose()).RowSums().Sum(); 
-        Console.Write(opt_sol);
-        return;
+            Output(output, $"stream_{filename}");
+            return;
+        }
+
+        public static double Solution(Matrix<double> input, Matrix<double> sigma)
+        {
+            return input.PointwiseMultiply(sigma * sigma.Transpose()).RowSums().Sum();
+        }
+
+        public static void Output(IEnumerable<double> output, string filename)
+        {
+            FileStream stream = new FileStream(filename, FileMode.Create);
+            IEnumerator<double> list = output.GetEnumerator(); 
+
+            using (StreamWriter writer = new StreamWriter(stream))
+            {
+                while (list.MoveNext())
+                {
+                    writer.WriteLine(list.Current);
+                }
+            }
+        }
     }
 }

@@ -4,26 +4,24 @@ using MathNet.Numerics;
 
 namespace BCM{
     class ThreadedBCM{
-        public static Matrix<double> Solver(Matrix<double> A){
+        public static IEnumerable<double> Solver(Matrix<double> A){
             Control.MaxDegreeOfParallelism = 24;
             int n = A.RowCount;
 
             int rank = (int) Math.Sqrt(n);
 
-            // Generating sigma matrix and normalising so that all rows equal 1.
-            Matrix<double> sigma = CreateMatrix.Random<double>(n, rank);
-            Vector<double> sigNorm = sigma.RowNorms(2D);
+            IEnumerable<double> output = Enumerable.Empty<double>();
 
-            for (int i = 0; i < n; i++){
-                sigma.SetRow(i, sigma.Row(i)/sigNorm[i]);
-            }
+            // Generating sigma matrix and normalising so that all rows equal 1.
+            Matrix<double> sigma = CreateMatrix.Random<double>(n, rank).NormalizeRows(2D);
 
             // Creating gradient array and fililng with information
             Matrix<double> noDiag = A - CreateMatrix.SparseOfDiagonalVector<double>(A.Diagonal());
             Matrix<double> grad = (A - CreateMatrix.SparseOfDiagonalVector<double>(A.Diagonal())).Multiply(sigma);
 
             Vector<double> mag_grad = grad.RowNorms(2D);
-            
+
+            // Since using explicit multi-threading disabling built-in multithreading
             Control.UseSingleThread();
 
             // Declaring loop variables
@@ -52,22 +50,24 @@ namespace BCM{
 
                 // Returning if selection is same as old or small
                 if (ik == old_sel || max_val < 0.001 || iterations >= max_iter) {
-                    return sigma;
+                    return output;
                     }
                 old_sel = ik;
 
                 // Updating sigma and recalculating gradient array.
                 old_row = sigma.Row(ik);
                 sigma.SetRow(ik, grad.Row(ik)/mag_grad[ik]);
+
+                // Updating gradient array
                 Parallel.For(0, n, i => {
                     if (i != ik){
                         grad.SetRow(i, grad.Row(i) + A[i,ik] * sigma.Row(ik) - A[i, ik] * old_row);
                     }
                 });
-                grad = (A - CreateMatrix.SparseOfDiagonalVector<double>(A.Diagonal())) * sigma;
 
                 mag_grad = grad.RowNorms(2D);
                 iterations++;
+                output = output.Append(Program.Solution(A, sigma));
             } 
         }
     }
